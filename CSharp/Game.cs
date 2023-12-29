@@ -18,6 +18,8 @@ namespace CSharp
     {
         private GameMode mode = GameMode.Lobby;
         private Player player = null;
+        private Monster monster = null;
+        private Random rand = new Random();
 
         
         public void Process()
@@ -31,6 +33,7 @@ namespace CSharp
                     ProcessTown();
                     break;
                 case GameMode.Field:
+                    ProcessField();
                     break;
             }
         }
@@ -74,6 +77,89 @@ namespace CSharp
                     break;
                 case "2":
                     mode = GameMode.Lobby;
+                    break;
+
+            }
+        }
+
+        private void ProcessField()
+        {
+            Console.WriteLine();
+            Console.WriteLine("필드에 입장했습니다.");
+            CreateRandomMonster();
+            Console.WriteLine("[1] 싸우기");
+            Console.WriteLine("[2] 일정 확률로 마을 돌아가기");
+            
+
+            string input = Console.ReadLine();
+            switch (input)
+            {
+                case "1":
+                    ProcessFight();
+                    break;
+                case "2":
+                    TryEscape();
+                    break;
+
+            }
+        }
+        private void TryEscape() 
+        {
+            int randValue = rand.Next(0, 101); // 0~100
+            if(randValue < 33)  // 33% 확률로 도망침
+            {
+                mode = GameMode.Town;
+            }
+            else
+            {
+                ProcessFight();
+            }
+        }
+
+
+
+        private void ProcessFight()
+        {
+            while (true)    // 자동사냥
+            {
+                int damage = player.GetAttack();
+                monster.OnDamaged(damage);
+                if (monster.IsDead())
+                {
+                    Console.WriteLine("승리했습니다!");
+                    Console.WriteLine($"플레이어의 체력 : {player.GetHp()}");
+
+                    break;
+                }
+
+                damage = monster.GetAttack();
+                player.OnDamaged(damage);
+                if (player.IsDead())
+                {
+                    Console.WriteLine("패배했습니다!");
+                    Console.WriteLine($"몬스터의 체력 : {monster.GetHp()}");
+                    mode = GameMode.Lobby;
+                    break;
+                }
+            }
+        }
+
+        private void CreateRandomMonster()
+        {
+            int randValue = rand.Next(0, 3); // 0~2
+            switch (randValue)
+            {
+                case 0:
+                    monster = new Slime();
+                    Console.WriteLine("슬라임이 나타났습니다!");
+                    break;
+                case 1:
+                    monster = new Orc();
+                    Console.WriteLine("오크가 나타났습니다!");
+                    break;
+                case 2:
+                    monster = new Skeleton();
+                    Console.WriteLine("해골이 나타났습니다!");
                     break;
 
             }
